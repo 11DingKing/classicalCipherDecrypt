@@ -244,16 +244,21 @@ int det3(const vector<vector<int>>& M) {
 }
 
 vector<vector<int>> adjugate3(const vector<vector<int>>& M) {
+    vector<vector<int>> cof(3, vector<int>(3));
+    cof[0][0] =  (M[1][1] * M[2][2] - M[1][2] * M[2][1]);
+    cof[0][1] = -(M[1][0] * M[2][2] - M[1][2] * M[2][0]);
+    cof[0][2] =  (M[1][0] * M[2][1] - M[1][1] * M[2][0]);
+    cof[1][0] = -(M[0][1] * M[2][2] - M[0][2] * M[2][1]);
+    cof[1][1] =  (M[0][0] * M[2][2] - M[0][2] * M[2][0]);
+    cof[1][2] = -(M[0][0] * M[2][1] - M[0][1] * M[2][0]);
+    cof[2][0] =  (M[0][1] * M[1][2] - M[0][2] * M[1][1]);
+    cof[2][1] = -(M[0][0] * M[1][2] - M[0][2] * M[1][0]);
+    cof[2][2] =  (M[0][0] * M[1][1] - M[0][1] * M[1][0]);
+
     vector<vector<int>> adj(3, vector<int>(3));
-    adj[0][0] = M[1][1] * M[2][2] - M[1][2] * M[2][1];
-    adj[0][1] = M[0][2] * M[2][1] - M[0][1] * M[2][2];
-    adj[0][2] = M[0][1] * M[1][2] - M[0][2] * M[1][1];
-    adj[1][0] = M[1][2] * M[2][0] - M[1][0] * M[2][2];
-    adj[1][1] = M[0][0] * M[2][2] - M[0][2] * M[2][0];
-    adj[1][2] = M[0][2] * M[1][0] - M[0][0] * M[1][2];
-    adj[2][0] = M[1][0] * M[2][1] - M[1][1] * M[2][0];
-    adj[2][1] = M[0][1] * M[2][0] - M[0][0] * M[2][1];
-    adj[2][2] = M[0][0] * M[1][1] - M[0][1] * M[1][0];
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            adj[i][j] = cof[j][i];
     return adj;
 }
 
@@ -308,8 +313,6 @@ bool solveHillMatrix(const string& plaintext, const string& c1,
                 if (!inverseMod26(P, PInv)) continue;
 
                 A = mulMod26(C, PInv);
-                // 验证第一行是否为已知的 [11, 2, 19]
-                if (!(A[0][0] == 11 && A[0][1] == 2 && A[0][2] == 19)) continue;
                 if (!inverseMod26(A, AInv)) continue;
                 return true;
             }
@@ -534,7 +537,6 @@ int main() {
 
     // --- 第三步：Hill 密码解密 ---
     cout << "\n========== 第三步：Hill密码解密 ==========" << endl;
-    cout << "已知条件：A 的第一行 = [11, 2, 19]" << endl;
     cout << "通过已知明文攻击（C1 = A × P mod 26）推导完整密钥矩阵" << endl;
     cout << "\n密钥矩阵 A:" << endl;
     for (int i = 0; i < 3; i++) {
