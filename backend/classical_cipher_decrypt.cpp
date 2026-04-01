@@ -310,6 +310,22 @@ bool solveHillMatrix(const string& plaintext, const string& c1,
                 A = mulMod26(C, PInv);
                 // 验证第一行是否为已知的 [11, 2, 19]
                 if (!(A[0][0] == 11 && A[0][1] == 2 && A[0][2] == 19)) continue;
+                // 验证所有块都符合 C = A * P mod 26
+                bool allValid = true;
+                for (int b = 0; b < numBlocks; b++) {
+                    for (int r = 0; r < 3; r++) {
+                        int expected = 0;
+                        for (int k = 0; k < 3; k++)
+                            expected += A[r][k] * Pmat[b][k];
+                        expected = ((expected % N) + N) % N;
+                        if (expected != Cmat[b][r]) {
+                            allValid = false;
+                            break;
+                        }
+                    }
+                    if (!allValid) break;
+                }
+                if (!allValid) continue;
                 if (!inverseMod26(A, AInv)) continue;
                 return true;
             }
