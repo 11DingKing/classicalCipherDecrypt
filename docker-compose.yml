@@ -1,0 +1,10 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: classical-cipher-decrypt
+    # 不指定 platform 时自动匹配宿主机架构（ARM64/AMD64）
+    # Apple Silicon 验收：docker compose build --platform linux/arm64
+    stdin_open: true
+    tty: true
