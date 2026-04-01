@@ -308,10 +308,23 @@ bool solveHillMatrix(const string& plaintext, const string& c1,
                 if (!inverseMod26(P, PInv)) continue;
 
                 A = mulMod26(C, PInv);
-                // 验证第一行是否为已知的 [11, 2, 19]
-                if (!(A[0][0] == 11 && A[0][1] == 2 && A[0][2] == 19)) continue;
                 if (!inverseMod26(A, AInv)) continue;
-                return true;
+
+                bool consistent = true;
+                for (int b = 0; b < numBlocks; b++) {
+                    for (int row = 0; row < 3; row++) {
+                        int val = 0;
+                        for (int col = 0; col < 3; col++)
+                            val = (val + A[row][col] * Pmat[b][col]) % N;
+                        val = ((val % N) + N) % N;
+                        if (val != Cmat[b][row]) {
+                            consistent = false;
+                            break;
+                        }
+                    }
+                    if (!consistent) break;
+                }
+                if (consistent) return true;
             }
     return false;
 }
@@ -436,7 +449,25 @@ int main() {
 
                 string raw = hillDecrypt(candidateC1, hi);
                 string pt = removePadding(raw);
-                if ((int)pt.length() >= 20 && pt.substr(0, 20) == KNOWN_PREFIX) {
+                bool allBlocksValid = true;
+                for (size_t b = 0; b < candidateC1.length() / 3; b++) {
+                    vector<int> p(3), c(3);
+                    for (int j = 0; j < 3; j++) {
+                        p[j] = charToNum(pt[b*3 + j]);
+                        c[j] = charToNum(candidateC1[b*3 + j]);
+                    }
+                    for (int row = 0; row < 3; row++) {
+                        int val = 0;
+                        for (int col = 0; col < 3; col++)
+                            val = (val + hk[row][col] * p[col]) % N;
+                        if (((val % N) + N) % N != c[row]) {
+                            allBlocksValid = false;
+                            break;
+                        }
+                    }
+                    if (!allBlocksValid) break;
+                }
+                if ((int)pt.length() >= 20 && pt.substr(0, 20) == KNOWN_PREFIX && allBlocksValid) {
                     keyLen = m; c2 = candidateC2; c1 = candidateC1;
                     vigenereKey = key; hillKey = hk; hillInv = hi;
                     plaintext = pt; found = true;
